@@ -1,0 +1,59 @@
+package com.example.crudmn.repository;
+
+import com.example.crudmn.models.Exam;
+import com.example.crudmn.models.StudentsExams;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ExamRepositoryImpl implements ExamRepositoryExtended {
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private StudentsExamsRepository studentsExamsRepository;
+
+    @Override
+    public List<Exam> getExamByTeacher(String teacherId) {
+        Query query = new Query();
+        Criteria criteria = new Criteria("teacherId").is(teacherId);
+        query.addCriteria(criteria);
+        return mongoTemplate.find(query, Exam.class);
+    }
+
+    @Override
+    public List<Exam> getAssignExamByStudentID(String studentId) {
+        List<StudentsExams> studentsExams = studentsExamsRepository.getAssignExamByStudentID(studentId);
+        List<Exam> exams = new ArrayList<>();
+
+        for (StudentsExams assignExam : studentsExams) {
+            Exam exam = mongoTemplate.findById(assignExam.getExamId(), Exam.class);
+            exams.add(exam);
+        }
+
+        return exams;
+    }
+
+    @Override
+    public List<Exam> getFinishedExamByStudentID(String studentId) {
+        List<StudentsExams> studentsExams =  studentsExamsRepository.getFinishedExamByStudentID(studentId);
+
+        List<Exam> exams = new ArrayList<>();
+
+        for (StudentsExams assignExam : studentsExams) {
+            Exam exam = mongoTemplate.findById(assignExam.getExamId(), Exam.class);
+            exams.add(exam);
+        }
+
+        return exams;
+    }
+
+    @Override
+    public Exam findExamById(String id) {
+        return mongoTemplate.findById(id, Exam.class);
+    }
+}
